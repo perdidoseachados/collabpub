@@ -7,9 +7,29 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- LOGIN -->
+  <div id="login-screen">
+    <div class="login-box">
+      <h1>Nostalgia Pipeline</h1>
+      <p class="sub">Canal de reflexao TikTok</p>
+      <form id="login-form">
+        <label>Usuario
+          <input type="text" id="login-user" required placeholder="seu nome">
+        </label>
+        <label>Senha
+          <input type="password" id="login-pass" required placeholder="senha">
+        </label>
+        <button type="submit" class="btn-primary">Entrar</button>
+        <p id="login-error" style="color:#f85149;margin-top:8px;display:none">Usuario ou senha incorretos</p>
+      </form>
+    </div>
+  </div>
+
+  <!-- APP (escondido ate login) -->
+  <div id="app" class="hidden">
   <header>
     <h1>Nostalgia Pipeline</h1>
-    <p class="sub">Canal de reflexao TikTok</p>
+    <p class="sub">Canal de reflexao TikTok — <span id="user-name"></span> <a href="#" id="logout" style="color:#f85149;font-size:0.8em">[sair]</a></p>
     <div id="status-bar"></div>
   </header>
 
@@ -85,6 +105,8 @@
       <div id="modal-body"></div>
     </div>
   </div>
+
+  </div><!-- fim #app -->
 
   <script src="app.js"></script>
 </body>

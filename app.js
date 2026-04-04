@@ -1,18 +1,81 @@
 const API = 'https://collab-f8hw.onrender.com';
 let roteiros = [];
 let filtroAtual = 'todos';
+let authToken = '';
 
 // ---------------------------------------------------------------------------
 // Init
 // ---------------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
+  // Checa sessao salva
+  const saved = sessionStorage.getItem('auth');
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      authToken = data.token;
+      showApp(data.user);
+    } catch { showLogin(); }
+  } else {
+    showLogin();
+  }
+
+  setupLogin();
   setupTabs();
   setupFilters();
   setupForm();
   setupModal();
+});
+
+// ---------------------------------------------------------------------------
+// Login
+// ---------------------------------------------------------------------------
+function showLogin() {
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('app').classList.add('hidden');
+}
+
+function showApp(user) {
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('user-name').textContent = user;
   checkStatus();
   loadRoteiros();
-});
+}
+
+function setupLogin() {
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const user = document.getElementById('login-user').value;
+    const pass = document.getElementById('login-pass').value;
+    document.getElementById('login-error').style.display = 'none';
+
+    try {
+      const r = await fetch(API + '/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user: user, pass: pass }),
+      });
+      const d = await r.json();
+      if (r.ok && d.token) {
+        authToken = d.token;
+        sessionStorage.setItem('auth', JSON.stringify({ token: d.token, user: d.user }));
+        showApp(d.user);
+      } else {
+        document.getElementById('login-error').style.display = 'block';
+      }
+    } catch {
+      document.getElementById('login-error').textContent = 'API offline, tente em 30s';
+      document.getElementById('login-error').style.display = 'block';
+    }
+  });
+
+  document.getElementById('logout').addEventListener('click', (e) => {
+    e.preventDefault();
+    sessionStorage.removeItem('auth');
+    authToken = '';
+    showLogin();
+  });
+}
 
 // ---------------------------------------------------------------------------
 // Tabs
