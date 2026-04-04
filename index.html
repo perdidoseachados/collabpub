@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nostalgia Pipeline</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Nostalgia Pipeline</h1>
+    <p class="sub">Canal de reflexao TikTok</p>
+    <div id="status-bar"></div>
+  </header>
+
+  <nav>
+    <button class="tab active" data-tab="roteiros">Roteiros</button>
+    <button class="tab" data-tab="criar">+ Novo</button>
+    <button class="tab" data-tab="calendario">Calendario</button>
+  </nav>
+
+  <!-- ROTEIROS -->
+  <section id="roteiros" class="panel active">
+    <div class="filters">
+      <button class="filter active" data-status="todos">Todos</button>
+      <button class="filter" data-status="rascunho">Rascunho</button>
+      <button class="filter" data-status="aprovado">Aprovado</button>
+      <button class="filter" data-status="em producao">Em Producao</button>
+      <button class="filter" data-status="publicado">Publicado</button>
+      <button class="filter" data-status="negado">Negado</button>
+      <button class="filter" data-status="repescagem">Repescagem</button>
+    </div>
+    <div id="roteiros-list"></div>
+  </section>
+
+  <!-- CRIAR -->
+  <section id="criar" class="panel">
+    <h2>Novo Roteiro</h2>
+    <form id="form-roteiro">
+      <label>Titulo
+        <input type="text" name="titulo" required placeholder="Ex: Internet discada">
+      </label>
+      <label>Texto / Reflexao
+        <textarea name="texto" rows="4" placeholder="O texto que aparece no video..."></textarea>
+      </label>
+      <label>Descricao Visual
+        <textarea name="visual" rows="2" placeholder="Computador bege, Windows 98, modem..."></textarea>
+      </label>
+      <label>Pergunta Final
+        <input type="text" name="pergunta" placeholder="O que perdeu valor na sua vida...?">
+      </label>
+      <div class="row">
+        <label>Duracao (s)
+          <input type="number" name="duracao" value="20" min="5" max="60">
+        </label>
+        <label>Formato
+          <select name="formato">
+            <option value="slideshow">Slideshow (video)</option>
+            <option value="carrossel">Carrossel (fotos)</option>
+          </select>
+        </label>
+        <label>Plataforma
+          <select name="plataforma">
+            <option value="tiktok">TikTok</option>
+            <option value="instagram">Instagram</option>
+            <option value="ambos">Ambos</option>
+          </select>
+        </label>
+      </div>
+      <button type="submit" class="btn-primary">Salvar Rascunho</button>
+    </form>
+  </section>
+
+  <!-- CALENDARIO -->
+  <section id="calendario" class="panel">
+    <h2>Agendamentos</h2>
+    <div id="cal-list"></div>
+  </section>
+
+  <!-- MODAL EDITAR -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2 id="modal-titulo"></h2>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
