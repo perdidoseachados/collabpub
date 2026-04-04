@@ -57,37 +57,64 @@
   <section id="criar" class="panel">
     <h2>Novo Roteiro</h2>
     <form id="form-roteiro">
-      <label>Titulo
-        <input type="text" name="titulo" required placeholder="Ex: Internet discada">
-      </label>
-      <label>Texto / Reflexao
-        <textarea name="texto" rows="4" placeholder="O texto que aparece no video..."></textarea>
-      </label>
-      <label>Descricao Visual
-        <textarea name="visual" rows="2" placeholder="Computador bege, Windows 98, modem..."></textarea>
-      </label>
-      <label>Pergunta Final
-        <input type="text" name="pergunta" placeholder="O que perdeu valor na sua vida...?">
-      </label>
-      <div class="row">
-        <label>Duracao (s)
+      <div class="form-grid">
+
+        <div class="form-box">
+          <div class="box-header">Titulo</div>
+          <input type="text" name="titulo" required placeholder="Ex: Internet discada">
+        </div>
+
+        <div class="form-box full">
+          <div class="box-header">Texto / Reflexao</div>
+          <textarea name="texto" rows="4" placeholder="O texto que aparece no video..."></textarea>
+        </div>
+
+        <div class="form-box full">
+          <div class="box-header">Descricao Visual</div>
+          <textarea name="visual" rows="2" placeholder="Computador bege, Windows 98, modem..."></textarea>
+        </div>
+
+        <div class="form-box full">
+          <div class="box-header">Pergunta Final</div>
+          <input type="text" name="pergunta" placeholder="O que perdeu valor na sua vida...?">
+        </div>
+
+        <div class="form-box">
+          <div class="box-header">Duracao (s)</div>
           <input type="number" name="duracao" value="20" min="5" max="60">
-        </label>
-        <label>Formato
+        </div>
+
+        <div class="form-box">
+          <div class="box-header">Formato</div>
           <select name="formato">
             <option value="slideshow">Slideshow (video)</option>
             <option value="carrossel">Carrossel (fotos)</option>
           </select>
-        </label>
-        <label>Plataforma
+        </div>
+
+        <div class="form-box">
+          <div class="box-header">Plataforma</div>
           <select name="plataforma">
             <option value="tiktok">TikTok</option>
             <option value="instagram">Instagram</option>
             <option value="ambos">Ambos</option>
           </select>
-        </label>
+        </div>
+
+        <div class="form-box">
+          <div class="box-header">Classificacao</div>
+          <div class="star-picker" data-name="rating">
+            <span class="star" data-val="1">&#9734;</span>
+            <span class="star" data-val="2">&#9734;</span>
+            <span class="star" data-val="3">&#9734;</span>
+            <span class="star" data-val="4">&#9734;</span>
+            <span class="star" data-val="5">&#9734;</span>
+          </div>
+          <input type="hidden" name="rating" value="0">
+        </div>
+
       </div>
-      <button type="submit" class="btn-primary">Salvar Rascunho</button>
+      <button type="submit" class="btn-primary" style="margin-top:16px">Salvar Rascunho</button>
     </form>
   </section>
 

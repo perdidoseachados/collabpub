@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupFilters();
   setupForm();
   setupModal();
+  setupStars();
 });
 
 // ---------------------------------------------------------------------------
@@ -80,6 +81,43 @@ function setupLogin() {
 // ---------------------------------------------------------------------------
 // Tabs
 // ---------------------------------------------------------------------------
+function setupStars() {
+  document.querySelectorAll('.star-picker').forEach(picker => {
+    const stars = picker.querySelectorAll('.star');
+    const hidden = picker.parentElement.querySelector('input[type=hidden]');
+    stars.forEach(star => {
+      star.addEventListener('click', () => {
+        const val = parseInt(star.dataset.val);
+        hidden.value = val;
+        stars.forEach(s => {
+          s.textContent = parseInt(s.dataset.val) <= val ? '\u2605' : '\u2606';
+          s.classList.toggle('active', parseInt(s.dataset.val) <= val);
+        });
+      });
+      star.addEventListener('mouseenter', () => {
+        const val = parseInt(star.dataset.val);
+        stars.forEach(s => {
+          s.textContent = parseInt(s.dataset.val) <= val ? '\u2605' : '\u2606';
+        });
+      });
+    });
+    picker.addEventListener('mouseleave', () => {
+      const val = parseInt(hidden.value);
+      stars.forEach(s => {
+        s.textContent = parseInt(s.dataset.val) <= val ? '\u2605' : '\u2606';
+        s.classList.toggle('active', parseInt(s.dataset.val) <= val);
+      });
+    });
+  });
+}
+
+function starsHTML(rating) {
+  let r = parseInt(rating) || 0;
+  let s = '';
+  for (let i = 1; i <= 5; i++) s += i <= r ? '\u2605' : '\u2606';
+  return '<span class="stars-display">' + s + '</span>';
+}
+
 function setupTabs() {
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -146,6 +184,7 @@ function renderRoteiros() {
         '<span class="badge ' + badgeClass + '">' + r.status + '</span>' +
       '</div>' +
       '<div class="card-meta">' +
+        starsHTML(r.rating) + ' ' +
         r.criado_em + ' | ' + r.formato + ' | ' + r.plataforma +
         (r.agendamento ? ' | Agendado: ' + r.agendamento : '') +
       '</div>' +
@@ -251,6 +290,7 @@ function setupForm() {
       duracao: parseInt(fd.get('duracao')) || 20,
       formato: fd.get('formato'),
       plataforma: fd.get('plataforma'),
+      rating: parseInt(fd.get('rating')) || 0,
     };
     await fetch(API + '/api/roteiros', {
       method: 'POST',

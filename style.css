@@ -147,6 +147,54 @@ form textarea { resize: vertical; }
 .row { display: flex; gap: 12px; }
 .row label { flex: 1; }
 
+/* Form grid boxes */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.form-box {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 12px;
+}
+.form-box:hover { border-color: #f0883e; }
+.form-box.full { grid-column: 1 / -1; }
+.box-header {
+  font-size: 0.8em;
+  color: #f0883e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.form-box input,
+.form-box textarea,
+.form-box select {
+  background: transparent;
+  border: none;
+  color: #e6edf3;
+  width: 100%;
+  font-size: 0.95em;
+  outline: none;
+}
+.form-box textarea { resize: vertical; }
+.form-box select { background: #0d1117; }
+
+/* Stars */
+.star-picker { display: flex; gap: 4px; }
+.star {
+  font-size: 1.6em;
+  cursor: pointer;
+  color: #30363d;
+  transition: color 0.15s;
+}
+.star:hover, .star.active { color: #f0883e; }
+
+/* Stars display in cards */
+.stars-display { color: #f0883e; font-size: 0.9em; letter-spacing: 2px; }
+
 .btn-primary {
   background: #f0883e;
   color: #0d1117;
@@ -159,6 +207,11 @@ form textarea { resize: vertical; }
   margin-top: 8px;
 }
 .btn-primary:hover { background: #d2740e; }
+
+@media (max-width: 600px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .form-box.full { grid-column: 1; }
+}
 
 /* Calendar */
 .cal-item {
