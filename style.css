@@ -140,6 +140,19 @@ nav {
 .status-dropdown:hover { border-color: #f0883e; }
 .status-dropdown:focus { outline: none; border-color: #f0883e; }
 
+/* Spinner */
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
 /* Forms */
 form label {
   display: block;

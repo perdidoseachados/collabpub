@@ -48,9 +48,19 @@ function setupLogin() {
     e.preventDefault();
     const user = document.getElementById('login-user').value;
     const pass = document.getElementById('login-pass').value;
-    document.getElementById('login-error').style.display = 'none';
+    const btn = document.querySelector('#login-form button[type="submit"]');
+    const errEl = document.getElementById('login-error');
+    errEl.style.display = 'none';
+
+    // Mostrar spinner
+    btn.disabled = true;
+    btn.dataset.originalText = btn.textContent;
+    btn.innerHTML = '<span class="spinner"></span> Conectando...';
 
     try {
+      // Primeiro acorda o Render se estiver dormindo
+      try { await fetch(API + '/', { signal: AbortSignal.timeout(5000) }); } catch {}
+
       const r = await fetch(API + '/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -62,11 +72,36 @@ function setupLogin() {
         sessionStorage.setItem('auth', JSON.stringify({ token: d.token, user: d.user }));
         showApp(d.user);
       } else {
-        document.getElementById('login-error').style.display = 'block';
+        errEl.textContent = 'Usuario ou senha incorretos';
+        errEl.style.display = 'block';
       }
     } catch {
-      document.getElementById('login-error').textContent = 'API offline, tente em 30s';
-      document.getElementById('login-error').style.display = 'block';
+      // Render dormindo — tenta acordar e refazer
+      btn.innerHTML = '<span class="spinner"></span> Acordando servidor...';
+      try {
+        await fetch(API + '/', { signal: AbortSignal.timeout(45000) });
+        // Tenta login de novo
+        const r2 = await fetch(API + '/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user: user, pass: pass }),
+        });
+        const d2 = await r2.json();
+        if (r2.ok && d2.token) {
+          authToken = d2.token;
+          sessionStorage.setItem('auth', JSON.stringify({ token: d2.token, user: d2.user }));
+          showApp(d2.user);
+        } else {
+          errEl.textContent = 'Usuario ou senha incorretos';
+          errEl.style.display = 'block';
+        }
+      } catch {
+        errEl.textContent = 'Servidor offline. Tente novamente em 1 minuto.';
+        errEl.style.display = 'block';
+      }
+    } finally {
+      btn.disabled = false;
+      btn.textContent = btn.dataset.originalText || 'Entrar';
     }
   });
 
