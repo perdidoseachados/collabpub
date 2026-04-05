@@ -153,6 +153,37 @@ nav {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* Search */
+.search-bar {
+  margin: 12px 0 8px;
+}
+.search-bar input {
+  width: 100%;
+  padding: 10px 14px;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  color: #e6edf3;
+  font-size: 0.95em;
+}
+.search-bar input::placeholder { color: #484f58; }
+.search-bar input:focus { outline: none; border-color: #f0883e; }
+
+/* Autor tag */
+.autor-tag {
+  background: #f0883e20;
+  color: #f0883e;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 0.85em;
+}
+
+/* Citacao destaque */
+.citacao-destaque {
+  color: #d2a8ff;
+  font-style: italic;
+}
+
 /* Forms */
 form label {
   display: block;

@@ -1,6 +1,7 @@
 const API = 'https://collab-f8hw.onrender.com';
 let roteiros = [];
 let filtroAtual = 'todos';
+let buscaAtual = '';
 let authToken = '';
 
 // ---------------------------------------------------------------------------
@@ -25,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupForm();
   setupModal();
   setupStars();
+  setupSearch();
 });
 
 // ---------------------------------------------------------------------------
@@ -200,19 +202,55 @@ async function loadRoteiros() {
 function renderRoteiros() {
   const list = document.getElementById('roteiros-list');
   let filtered = roteiros;
+
+  // Filtro por status
   if (filtroAtual !== 'todos') {
-    filtered = roteiros.filter(r => r.status === filtroAtual);
+    filtered = filtered.filter(r => r.status === filtroAtual);
   }
+
+  // Busca por texto
+  if (buscaAtual) {
+    var q = buscaAtual.toLowerCase();
+    filtered = filtered.filter(r =>
+      (r.titulo || '').toLowerCase().includes(q) ||
+      (r.texto || '').toLowerCase().includes(q) ||
+      (r.pergunta || '').toLowerCase().includes(q) ||
+      (r.autor_ideia || '').toLowerCase().includes(q)
+    );
+  }
+
+  // Ordenacao: agendados (por data) > polimento > aprovado > em producao > rascunho > publicado > repescagem > negado
+  var statusOrder = {
+    'aprovado': 1, 'em producao': 2, 'polimento': 3,
+    'rascunho': 4, 'publicado': 5, 'repescagem': 6, 'negado': 7
+  };
+  filtered.sort(function(a, b) {
+    // Agendados sempre primeiro, por data
+    if (a.agendamento && !b.agendamento) return -1;
+    if (!a.agendamento && b.agendamento) return 1;
+    if (a.agendamento && b.agendamento) return a.agendamento.localeCompare(b.agendamento);
+    // Depois por status
+    var sa = statusOrder[a.status] || 99;
+    var sb = statusOrder[b.status] || 99;
+    if (sa !== sb) return sa - sb;
+    // Depois por rating (maior primeiro)
+    return (b.rating || 0) - (a.rating || 0);
+  });
 
   if (filtered.length === 0) {
     list.innerHTML = '<div class="empty">Nenhum roteiro ' +
-      (filtroAtual !== 'todos' ? 'com status "' + filtroAtual + '"' : 'ainda') +
-      '. Crie um!</div>';
+      (buscaAtual ? 'encontrado para "' + esc(buscaAtual) + '"' :
+       filtroAtual !== 'todos' ? 'com status "' + filtroAtual + '"' : 'ainda') +
+      '</div>';
     return;
   }
 
   list.innerHTML = filtered.map(r => {
     const badgeClass = 'badge-' + r.status.replace(/ /g, '-');
+    // Destaque da citacao no texto (entre aspas ou depois de "disse")
+    var textoHtml = esc(r.texto || '').substring(0, 200) + (r.texto && r.texto.length > 200 ? '...' : '');
+    textoHtml = textoHtml.replace(/((?:disse uma vez|certa vez disse|ouvi uma vez|alguem disse)[^.]*\.)/gi, '<span class="citacao-destaque">$1</span>');
+
     return '<div class="card" data-id="' + r.id + '">' +
       '<div class="card-header">' +
         '<span class="card-title">' + esc(r.titulo) + '</span>' +
@@ -221,9 +259,10 @@ function renderRoteiros() {
       '<div class="card-meta">' +
         starsHTML(r.rating) + ' ' +
         r.criado_em + ' | ' + r.formato + ' | ' + r.plataforma +
-        (r.agendamento ? ' | Agendado: ' + r.agendamento : '') +
+        (r.agendamento ? ' | <span style="color:#f0883e">Agendado: ' + r.agendamento + '</span>' : '') +
+        (r.autor_ideia ? ' | <span class="autor-tag">' + esc(r.autor_ideia) + '</span>' : '') +
       '</div>' +
-      (r.texto ? '<div class="card-texto">' + esc(r.texto).substring(0, 150) + (r.texto.length > 150 ? '...' : '') + '</div>' : '') +
+      (r.texto ? '<div class="card-texto">' + textoHtml + '</div>' : '') +
       (r.pergunta ? '<div class="card-pergunta">' + esc(r.pergunta) + '</div>' : '') +
       '<div class="card-actions">' +
         statusButtons(r) +
@@ -313,6 +352,13 @@ async function handleAction(id, action, value) {
 // ---------------------------------------------------------------------------
 // Filters
 // ---------------------------------------------------------------------------
+function setupSearch() {
+  document.getElementById('search-input').addEventListener('input', (e) => {
+    buscaAtual = e.target.value.trim();
+    renderRoteiros();
+  });
+}
+
 function setupFilters() {
   document.querySelectorAll('.filter').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -420,6 +466,7 @@ function openEditModal(id) {
   html += '<label>Texto / Reflexao<textarea name="texto" rows="4" style="display:block;width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3">' + esc(r.texto || '') + '</textarea></label>';
   html += '<label>Descricao Visual<textarea name="visual" rows="2" style="display:block;width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3">' + esc(r.visual || '') + '</textarea></label>';
   html += '<label>Pergunta Final<input type="text" name="pergunta" value="' + esc(r.pergunta || '') + '" style="display:block;width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3"></label>';
+  html += '<label>Autor da Ideia <span style="color:#8b949e;font-size:0.8em">(quem inspirou este roteiro)</span><input type="text" name="autor_ideia" value="' + esc(r.autor_ideia || '') + '" placeholder="Ex: Buda, Seneca, Jesus, Thich Nhat Hanh" style="display:block;width:100%;padding:8px;background:#0d1117;border:1px solid #f0883e40;border-radius:6px;color:#f0883e"></label>';
   html += '<div style="display:flex;gap:12px">';
   html += '<label style="flex:1">Duracao (s)<input type="number" name="duracao" value="' + (r.duracao || 20) + '" min="5" max="120" style="display:block;width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3"></label>';
   html += '<label style="flex:1">Formato<select name="formato" style="display:block;width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3"><option value="slideshow"' + (r.formato === 'slideshow' ? ' selected' : '') + '>Slideshow</option><option value="carrossel"' + (r.formato === 'carrossel' ? ' selected' : '') + '>Carrossel</option></select></label>';
@@ -442,6 +489,7 @@ function openEditModal(id) {
         texto: fd.get('texto'),
         visual: fd.get('visual'),
         pergunta: fd.get('pergunta'),
+        autor_ideia: fd.get('autor_ideia'),
         duracao: parseInt(fd.get('duracao')) || 20,
         formato: fd.get('formato'),
         plataforma: fd.get('plataforma'),
