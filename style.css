@@ -192,6 +192,61 @@ nav {
 .tipo-slideshow { background: #1a2744; color: #79c0ff; }
 .tipo-carrossel { background: #2a1f0d; color: #f0883e; }
 
+/* Editor de roteiro (arquivo unico) */
+.edit-container { display: flex; flex-direction: column; gap: 8px; }
+.edit-textarea {
+  width: 100%;
+  min-height: 300px;
+  padding: 16px;
+  background: #0a0e14;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  color: #c9d1d9;
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.85em;
+  line-height: 1.6;
+  resize: none;
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.edit-textarea:focus { outline: none; border-color: #f0883e; }
+.edit-validation {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8em;
+  font-weight: 600;
+}
+.edit-validation-ok { background: #1f3a2a; color: #3fb950; }
+.edit-validation-error { background: #3d1418; color: #f85149; }
+.edit-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: 0.75em;
+  color: #484f58;
+  border-top: 1px solid #21262d;
+}
+.edit-log {
+  font-size: 0.75em;
+  color: #8b949e;
+  max-height: 80px;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+.log-entry { padding: 2px 0; color: #484f58; }
+.edit-actions { display: flex; padding-top: 8px; }
+
+/* Modal responsivo */
+@media (max-width: 600px) {
+  .modal-content { width: 95%; margin: 10px auto; padding: 16px; max-height: 90vh; overflow-y: auto; }
+  .edit-textarea { font-size: 0.75em; min-height: 250px; padding: 10px; }
+  .edit-footer { font-size: 0.65em; }
+  .card-header { flex-direction: column; gap: 6px; }
+  .card-badges { align-self: flex-start; }
+}
+
 /* Citacao destaque */
 .citacao-destaque {
   color: #d2a8ff;
@@ -317,9 +372,9 @@ form textarea { resize: vertical; }
   border: 1px solid #30363d;
   border-radius: 12px;
   padding: 24px;
-  width: 90%;
-  max-width: 500px;
-  max-height: 80vh;
+  width: 94%;
+  max-width: 720px;
+  max-height: 90vh;
   overflow-y: auto;
 }
 .modal-content .close {

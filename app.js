@@ -471,48 +471,190 @@ async function mudarStatus(id, status) {
   loadRoteiros();
 }
 
+// ---- Roteiro como arquivo de texto unico ----
+
+function roteiroToText(r) {
+  var sep = '════════════════════════════════════════';
+  var lines = [];
+  lines.push(sep);
+  lines.push('  TITULO');
+  lines.push(sep);
+  lines.push(r.titulo || '');
+  lines.push('');
+  lines.push(sep);
+  lines.push('  NARRACAO / REFLEXAO');
+  lines.push(sep);
+  lines.push(r.texto || '');
+  lines.push('');
+  lines.push(sep);
+  lines.push('  PERGUNTA FINAL');
+  lines.push(sep);
+  lines.push(r.pergunta || '');
+  lines.push('');
+  lines.push(sep);
+  lines.push('  DESCRICAO VISUAL');
+  lines.push(sep);
+  lines.push(r.visual || '');
+  lines.push('');
+  lines.push(sep);
+  lines.push('  AUTOR DA IDEIA');
+  lines.push(sep);
+  lines.push(r.autor_ideia || '');
+  lines.push('');
+  lines.push(sep);
+  lines.push('  CONFIG');
+  lines.push(sep);
+  lines.push('duracao: ' + (r.duracao || 60));
+  lines.push('formato: ' + (r.formato || 'slideshow'));
+  lines.push('plataforma: ' + (r.plataforma || 'tiktok'));
+  lines.push('rating: ' + (r.rating || 0));
+  return lines.join('\n');
+}
+
+function textToRoteiro(text) {
+  var sep = /═{10,}/g;
+  var blocks = text.split(sep).map(function(b) { return b.trim(); });
+  // blocks: ['', 'TITULO', 'conteudo', '', 'NARRACAO...', 'conteudo', ...]
+  var sections = {};
+  var currentKey = null;
+  blocks.forEach(function(block) {
+    var label = block.trim().toUpperCase();
+    if (label === 'TITULO') currentKey = 'titulo';
+    else if (label.startsWith('NARRACAO') || label.startsWith('REFLEXAO')) currentKey = 'texto';
+    else if (label.startsWith('PERGUNTA')) currentKey = 'pergunta';
+    else if (label.startsWith('DESCRICAO VISUAL') || label === 'VISUAL') currentKey = 'visual';
+    else if (label.startsWith('AUTOR')) currentKey = 'autor_ideia';
+    else if (label === 'CONFIG') currentKey = 'config';
+    else if (currentKey && block.trim()) {
+      if (currentKey === 'config') {
+        block.split('\n').forEach(function(line) {
+          var m = line.match(/^(\w+):\s*(.+)$/);
+          if (m) sections[m[1]] = m[2].trim();
+        });
+      } else {
+        sections[currentKey] = block.trim();
+      }
+      currentKey = null;
+    }
+  });
+  return sections;
+}
+
+function validateStructure(text) {
+  var required = ['TITULO', 'NARRACAO', 'PERGUNTA', 'DESCRICAO VISUAL', 'AUTOR', 'CONFIG'];
+  var missing = [];
+  required.forEach(function(label) {
+    if (text.toUpperCase().indexOf(label) === -1) missing.push(label);
+  });
+  var sepCount = (text.match(/═{10,}/g) || []).length;
+  var errors = [];
+  if (missing.length) errors.push('Secoes faltando: ' + missing.join(', '));
+  if (sepCount < 12) errors.push('Separadores incompletos (' + sepCount + '/14). Nao apague as linhas ════');
+  return errors;
+}
+
 function openEditModal(id) {
   const r = roteiros.find(x => x.id === id);
   if (!r) return;
-  document.getElementById('modal-titulo').textContent = 'Editar: ' + r.titulo;
+  document.getElementById('modal-titulo').textContent = r.titulo;
 
-  let html = '<form id="edit-form" style="display:flex;flex-direction:column;gap:12px">';
-  html += '<label>Titulo<input type="text" name="titulo" value="' + esc(r.titulo) + '" style="display:block;width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3"></label>';
-  html += '<label>Texto / Reflexao<textarea name="texto" rows="4" style="display:block;width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3">' + esc(r.texto || '') + '</textarea></label>';
-  html += '<label>Descricao Visual<textarea name="visual" rows="2" style="display:block;width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3">' + esc(r.visual || '') + '</textarea></label>';
-  html += '<label>Pergunta Final<input type="text" name="pergunta" value="' + esc(r.pergunta || '') + '" style="display:block;width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3"></label>';
-  html += '<label>Autor da Ideia <span style="color:#8b949e;font-size:0.8em">(quem inspirou este roteiro)</span><input type="text" name="autor_ideia" value="' + esc(r.autor_ideia || '') + '" placeholder="Ex: Buda, Seneca, Jesus, Thich Nhat Hanh" style="display:block;width:100%;padding:8px;background:#0d1117;border:1px solid #f0883e40;border-radius:6px;color:#f0883e"></label>';
-  html += '<div style="display:flex;gap:12px">';
-  html += '<label style="flex:1">Duracao (s)<input type="number" name="duracao" value="' + (r.duracao || 20) + '" min="5" max="120" style="display:block;width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3"></label>';
-  html += '<label style="flex:1">Formato<select name="formato" style="display:block;width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3"><option value="slideshow"' + (r.formato === 'slideshow' ? ' selected' : '') + '>Slideshow</option><option value="carrossel"' + (r.formato === 'carrossel' ? ' selected' : '') + '>Carrossel</option></select></label>';
-  html += '<label style="flex:1">Plataforma<select name="plataforma" style="display:block;width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3"><option value="tiktok"' + (r.plataforma === 'tiktok' ? ' selected' : '') + '>TikTok</option><option value="instagram"' + (r.plataforma === 'instagram' ? ' selected' : '') + '>Instagram</option><option value="ambos"' + (r.plataforma === 'ambos' ? ' selected' : '') + '>Ambos</option></select></label>';
+  var fileText = roteiroToText(r);
+  var user = document.getElementById('user-name').textContent || '?';
+  var log = r.edit_log || [];
+
+  var html = '<div class="edit-container">';
+
+  // Validacao
+  html += '<div id="edit-validation" class="edit-validation"></div>';
+
+  // Textarea unico
+  html += '<textarea id="edit-textarea" class="edit-textarea" spellcheck="false">' + esc(fileText) + '</textarea>';
+
+  // Footer: meta info
+  html += '<div class="edit-footer">';
+  html += '<span>ID: ' + r.id + '</span>';
+  html += '<span>Criado: ' + (r.criado_em || '?') + '</span>';
+  html += '<span>Usuario: ' + esc(user) + '</span>';
+  html += '<span>Status: ' + r.status + '</span>';
   html += '</div>';
-  html += '<button type="submit" class="btn btn-aprovar" style="align-self:flex-start;margin-top:8px">Salvar</button>';
-  html += '</form>';
+
+  // Log de alteracoes
+  if (log.length) {
+    html += '<div class="edit-log"><strong>Historico:</strong>';
+    log.slice(-5).forEach(function(entry) {
+      html += '<div class="log-entry">' + esc(entry) + '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Botoes
+  html += '<div class="edit-actions">';
+  html += '<button id="edit-save" class="btn btn-aprovar">Salvar</button>';
+  html += '<button id="edit-cancel" class="btn" style="margin-left:8px">Cancelar</button>';
+  html += '</div>';
+
+  html += '</div>';
 
   document.getElementById('modal-body').innerHTML = html;
   document.getElementById('modal').classList.remove('hidden');
 
-  document.getElementById('edit-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
+  // Validacao em tempo real
+  var textarea = document.getElementById('edit-textarea');
+  var valDiv = document.getElementById('edit-validation');
+
+  function runValidation() {
+    var errors = validateStructure(textarea.value);
+    if (errors.length) {
+      valDiv.className = 'edit-validation edit-validation-error';
+      valDiv.innerHTML = '&#9888; ' + errors.join(' | ');
+    } else {
+      valDiv.className = 'edit-validation edit-validation-ok';
+      valDiv.innerHTML = '&#10003; Estrutura OK';
+    }
+  }
+  runValidation();
+  textarea.addEventListener('input', runValidation);
+
+  // Auto-resize textarea
+  function autoResize() {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.max(300, textarea.scrollHeight) + 'px';
+  }
+  autoResize();
+  textarea.addEventListener('input', autoResize);
+
+  // Salvar
+  document.getElementById('edit-save').addEventListener('click', async function() {
+    var errors = validateStructure(textarea.value);
+    if (errors.length) {
+      if (!confirm('Estrutura com problemas:\n' + errors.join('\n') + '\n\nSalvar mesmo assim?')) return;
+    }
+    var parsed = textToRoteiro(textarea.value);
+    var now = new Date().toISOString().replace('T',' ').substring(0,16);
+    var newLog = (r.edit_log || []).concat([now + ' | ' + user + ' | editou']);
+
     await fetch(API + '/api/roteiros/' + id, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        titulo: fd.get('titulo'),
-        texto: fd.get('texto'),
-        visual: fd.get('visual'),
-        pergunta: fd.get('pergunta'),
-        autor_ideia: fd.get('autor_ideia'),
-        duracao: parseInt(fd.get('duracao')) || 20,
-        formato: fd.get('formato'),
-        plataforma: fd.get('plataforma'),
+        titulo: parsed.titulo || r.titulo,
+        texto: parsed.texto || r.texto,
+        visual: parsed.visual || r.visual,
+        pergunta: parsed.pergunta || r.pergunta,
+        autor_ideia: parsed.autor_ideia || r.autor_ideia || '',
+        duracao: parseInt(parsed.duracao) || r.duracao || 60,
+        formato: parsed.formato || r.formato || 'slideshow',
+        plataforma: parsed.plataforma || r.plataforma || 'tiktok',
+        rating: parseInt(parsed.rating) || r.rating || 0,
+        edit_log: newLog,
       }),
     });
     closeModal();
     loadRoteiros();
   });
+
+  // Cancelar
+  document.getElementById('edit-cancel').addEventListener('click', closeModal);
 }
 
 async function salvarAgendamento(id) {
