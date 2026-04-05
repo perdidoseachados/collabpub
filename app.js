@@ -198,10 +198,18 @@ function renderRoteiros() {
 
   // Bind action buttons
   list.querySelectorAll('[data-action]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      handleAction(btn.dataset.id, btn.dataset.action);
-    });
+    if (btn.tagName === 'SELECT') {
+      btn.addEventListener('change', (e) => {
+        e.stopPropagation();
+        handleAction(btn.dataset.id, 'change-status', btn.value);
+      });
+      btn.addEventListener('click', (e) => e.stopPropagation());
+    } else {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleAction(btn.dataset.id, btn.dataset.action);
+      });
+    }
   });
 
   // Click card to open modal
@@ -212,34 +220,26 @@ function renderRoteiros() {
 
 function statusButtons(r) {
   let btns = '';
-  switch (r.status) {
-    case 'rascunho':
-      btns += '<button class="btn btn-aprovar" data-id="' + r.id + '" data-action="aprovado">Aprovar</button>';
-      btns += '<button class="btn btn-negar" data-id="' + r.id + '" data-action="negado">Negar</button>';
-      break;
-    case 'aprovado':
-      btns += '<button class="btn btn-gerar" data-id="' + r.id + '" data-action="gerar">Gerar Video</button>';
-      btns += '<button class="btn btn-repescar" data-id="' + r.id + '" data-action="repescagem">Repescagem</button>';
-      break;
-    case 'negado':
-      btns += '<button class="btn btn-repescar" data-id="' + r.id + '" data-action="repescagem">Repescagem</button>';
-      break;
-    case 'repescagem':
-      btns += '<button class="btn btn-aprovar" data-id="' + r.id + '" data-action="aprovado">Aprovar</button>';
-      btns += '<button class="btn btn-negar" data-id="' + r.id + '" data-action="negado">Negar</button>';
-      break;
-    case 'publicado':
-      if (r.video_url) {
-        btns += '<a class="btn btn-gerar" href="' + API + r.video_url + '" target="_blank">Download Video</a>';
-      }
-      break;
+  // Dropdown de status
+  btns += '<select class="status-dropdown" data-id="' + r.id + '" data-action="change-status">';
+  var statuses = ['rascunho','polimento','aprovado','em producao','publicado','negado','repescagem'];
+  statuses.forEach(function(s) {
+    btns += '<option value="' + s + '"' + (r.status === s ? ' selected' : '') + '>' + s + '</option>';
+  });
+  btns += '</select>';
+  // Ações específicas
+  if (r.status === 'aprovado' || r.status === 'polimento') {
+    btns += '<button class="btn btn-gerar" data-id="' + r.id + '" data-action="gerar">Gerar Video</button>';
+  }
+  if (r.status === 'publicado' && r.video_url) {
+    btns += '<a class="btn btn-gerar" href="' + API + r.video_url + '" target="_blank">Download Video</a>';
   }
   btns += '<button class="btn btn-editar" data-id="' + r.id + '" data-action="editar">Editar</button>';
   btns += '<button class="btn btn-delete" data-id="' + r.id + '" data-action="delete">Excluir</button>';
   return btns;
 }
 
-async function handleAction(id, action) {
+async function handleAction(id, action, value) {
   if (action === 'delete') {
     if (!confirm('Excluir roteiro?')) return;
     await fetch(API + '/api/roteiros/' + id, { method: 'DELETE' });
@@ -257,7 +257,16 @@ async function handleAction(id, action) {
     openEditModal(id);
     return;
   }
-  // Update status
+  if (action === 'change-status') {
+    await fetch(API + '/api/roteiros/' + id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: value }),
+    });
+    loadRoteiros();
+    return;
+  }
+  // Update status (legacy)
   await fetch(API + '/api/roteiros/' + id, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
