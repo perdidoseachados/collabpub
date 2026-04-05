@@ -251,10 +251,17 @@ function renderRoteiros() {
     var textoHtml = esc(r.texto || '').substring(0, 200) + (r.texto && r.texto.length > 200 ? '...' : '');
     textoHtml = textoHtml.replace(/((?:disse uma vez|certa vez disse|ouvi uma vez|alguem disse)[^.]*\.)/gi, '<span class="citacao-destaque">$1</span>');
 
+    var tipoInfo = formatoBadge(r.formato);
+
     return '<div class="card" data-id="' + r.id + '">' +
       '<div class="card-header">' +
         '<span class="card-title">' + esc(r.titulo) + '</span>' +
-        '<span class="badge ' + badgeClass + '">' + r.status + '</span>' +
+        '<div class="card-badges">' +
+          '<span class="tipo-badge tipo-' + (r.formato || 'slideshow') + '" title="' + tipoInfo.label + '">' +
+            '<span class="tipo-shape">' + tipoInfo.shape + '</span> ' + tipoInfo.label +
+          '</span>' +
+          '<span class="badge ' + badgeClass + '">' + r.status + '</span>' +
+        '</div>' +
       '</div>' +
       '<div class="card-meta">' +
         starsHTML(r.rating) + ' ' +
@@ -352,6 +359,14 @@ async function handleAction(id, action, value) {
 // ---------------------------------------------------------------------------
 // Filters
 // ---------------------------------------------------------------------------
+function formatoBadge(formato) {
+  switch (formato) {
+    case 'slideshow': return { shape: '\uD83C\uDFA5', label: 'video reel' };
+    case 'carrossel': return { shape: '\uD83D\uDC49\uD83D\uDDBC\uFE0F', label: 'multiphotos' };
+    default:          return { shape: '\uD83C\uDFA5', label: 'slideshow reel' };
+  }
+}
+
 function setupSearch() {
   document.getElementById('search-input').addEventListener('input', (e) => {
     buscaAtual = e.target.value.trim();
