@@ -123,6 +123,7 @@ nav {
 .btn-aprovar { background: #1f3a2a; color: #3fb950; }
 .btn-negar { background: #3d1418; color: #f85149; }
 .btn-repescar { background: #2d1f3d; color: #bc8cff; }
+.btn-editar { background: #1c2d3d; color: #58a6ff; border-color: #58a6ff; }
 .btn-delete { background: #3d1418; color: #f85149; border-color: #f85149; }
 
 /* Forms */

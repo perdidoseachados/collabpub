@@ -234,6 +234,7 @@ function statusButtons(r) {
       }
       break;
   }
+  btns += '<button class="btn btn-editar" data-id="' + r.id + '" data-action="editar">Editar</button>';
   btns += '<button class="btn btn-delete" data-id="' + r.id + '" data-action="delete">Excluir</button>';
   return btns;
 }
@@ -250,6 +251,10 @@ async function handleAction(id, action) {
     alert('Pipeline iniciado! Aguarde e recarregue.');
     loadRoteiros();
     checkStatus();
+    return;
+  }
+  if (action === 'editar') {
+    openEditModal(id);
     return;
   }
   // Update status
@@ -359,6 +364,48 @@ async function mudarStatus(id, status) {
   });
   closeModal();
   loadRoteiros();
+}
+
+function openEditModal(id) {
+  const r = roteiros.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById('modal-titulo').textContent = 'Editar: ' + r.titulo;
+
+  let html = '<form id="edit-form" style="display:flex;flex-direction:column;gap:12px">';
+  html += '<label>Titulo<input type="text" name="titulo" value="' + esc(r.titulo) + '" style="display:block;width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3"></label>';
+  html += '<label>Texto / Reflexao<textarea name="texto" rows="4" style="display:block;width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3">' + esc(r.texto || '') + '</textarea></label>';
+  html += '<label>Descricao Visual<textarea name="visual" rows="2" style="display:block;width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3">' + esc(r.visual || '') + '</textarea></label>';
+  html += '<label>Pergunta Final<input type="text" name="pergunta" value="' + esc(r.pergunta || '') + '" style="display:block;width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3"></label>';
+  html += '<div style="display:flex;gap:12px">';
+  html += '<label style="flex:1">Duracao (s)<input type="number" name="duracao" value="' + (r.duracao || 20) + '" min="5" max="120" style="display:block;width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3"></label>';
+  html += '<label style="flex:1">Formato<select name="formato" style="display:block;width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3"><option value="slideshow"' + (r.formato === 'slideshow' ? ' selected' : '') + '>Slideshow</option><option value="carrossel"' + (r.formato === 'carrossel' ? ' selected' : '') + '>Carrossel</option></select></label>';
+  html += '<label style="flex:1">Plataforma<select name="plataforma" style="display:block;width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3"><option value="tiktok"' + (r.plataforma === 'tiktok' ? ' selected' : '') + '>TikTok</option><option value="instagram"' + (r.plataforma === 'instagram' ? ' selected' : '') + '>Instagram</option><option value="ambos"' + (r.plataforma === 'ambos' ? ' selected' : '') + '>Ambos</option></select></label>';
+  html += '</div>';
+  html += '<button type="submit" class="btn btn-aprovar" style="align-self:flex-start;margin-top:8px">Salvar</button>';
+  html += '</form>';
+
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal').classList.remove('hidden');
+
+  document.getElementById('edit-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    await fetch(API + '/api/roteiros/' + id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        titulo: fd.get('titulo'),
+        texto: fd.get('texto'),
+        visual: fd.get('visual'),
+        pergunta: fd.get('pergunta'),
+        duracao: parseInt(fd.get('duracao')) || 20,
+        formato: fd.get('formato'),
+        plataforma: fd.get('plataforma'),
+      }),
+    });
+    closeModal();
+    loadRoteiros();
+  });
 }
 
 async function salvarAgendamento(id) {
